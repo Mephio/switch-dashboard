@@ -1494,7 +1494,9 @@ function renderSwitch(sw) {
       tooltipParts.push(p.interface);
     }
     const details = tooltipParts.length > 0 ? ` (${tooltipParts.join(' / ')})` : '';
-    const titleText = `Port ${p.port}${details}: ${p.status.toUpperCase()} ${p.speed || ''} (${p.duplex || ''}) - Click to view graph`;
+    const poePort = sw.poe && sw.poe.ports ? sw.poe.ports[String(p.port)] : null;
+    const poeNote = poePort ? ` | PoE: ${poePort.power_on ? 'On' : 'Off'}${poePort.power_w !== null ? ' ' + poePort.power_w + ' W' : ''}` : '';
+    const titleText = `Port ${p.port}${details}: ${p.status.toUpperCase()} ${p.speed || ''} (${p.duplex || ''})${poeNote} - Click to view graph`;
     const path = isSfp 
       ? 'M 4,5 h 3 v 3 h 10 v -3 h 3 v 14 h -16 z' // SFP (Fiber)
       : 'M 4,8 h 5 v -3 h 6 v 3 h 5 v 11 h -16 z'; // RJ45 (Copper)
@@ -1596,6 +1598,11 @@ function renderSwitch(sw) {
     const isActive = sw.jumbo_frame.enabled;
     const sizeVal = sw.jumbo_frame.size;
     jumboBadge = `<span><span class="label">Jumbo Frame:</span> <span class="value" style="color: ${isActive ? '#56d364' : '#8b949e'}">${isActive ? '🟢 Active (' + sizeVal + ')' : '⚪ Inactive'}</span></span>`;
+  }
+
+  let poeBadge = '';
+  if (sw.poe && sw.poe.total_w !== null && sw.poe.total_w !== undefined) {
+    poeBadge = `<span><span class="label">PoE:</span> <span class="value" style="color: #e3b341">⚡ ${sw.poe.total_w.toFixed(1)} W</span></span>`;
   }
 
   const macState = getMacState(sw.ip);
@@ -1723,6 +1730,7 @@ function renderSwitch(sw) {
       ${dhcpBadge}
       ${igmpBadge}
       ${jumboBadge}
+      ${poeBadge}
     </div>
     <table class="port-table">
       <thead><tr>

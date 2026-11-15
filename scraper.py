@@ -1814,8 +1814,62 @@ class HCSwitchScraper:
             "dhcp_snooping": dhcp_snooping,
             "igmp": igmp,
             "jumbo_frame": jumbo_frame,
+            "poe": self._scrape_poe(template),
             "timestamp": time.time(),
         }
+
+    def _scrape_poe(self, template):
+        """PoE data from the template's poe_system / poe_ports sections, or None."""
+        sys_cfg = template.get("poe_system")
+        ports_cfg = template.get("poe_ports")
+        if not sys_cfg and not ports_cfg:
+            return None
+
+        def to_num(text):
+            text = (text or "").strip()
+            return float(text) if re.fullmatch(r"\d+(\.\d+)?", text) else None
+
+        poe = {"total_w": None, "ports": {}}
+        try:
+            if sys_cfg:
+                html = self._fetch(sys_cfg.get("url", "/pse_system.cgi"))
+                if html:
+                    field = BeautifulSoup(html, "html.parser").find(
+                        "input", {"name": sys_cfg.get("field_name", "pse_con_pwr")})
+                    if field:
+                        poe["total_w"] = to_num(field.get("value"))
+
+            if ports_cfg:
+                html = self._fetch(ports_cfg.get("url", "/pse_port.cgi"))
+                if html:
+                    cols = ports_cfg.get("columns", {})
+                    keyword = ports_cfg.get("port_table_match", "Power On/Off")
+                    soup = BeautifulSoup(html, "html.parser")
+                    for table in soup.find_all("table"):
+                        if keyword not in table.get_text():
+                            continue
+                        for row in table.find_all("tr"):
+                            cells = [c.get_text(strip=True) for c in row.find_all(["td", "th"])]
+
+                            def cell(key):
+                                i = cols.get(key)
+                                return cells[i] if i is not None and i < len(cells) else ""
+
+                            match = re.match(r"Port\s*(\d+)", cell("port"))
+                            if not match:
+                                continue
+                            poe["ports"][match.group(1)] = {
+                                "state": cell("state"),
+                                "power_on": cell("power_on").lower() == "on",
+                                "type": cell("type"),
+                                "power_w": to_num(cell("power_w")),
+                                "voltage_v": to_num(cell("voltage_v")),
+                                "current_ma": to_num(cell("current_ma")),
+                            }
+                        break
+        except Exception as e:
+            logger.error(f"Failed to scrape PoE for {self.ip}: {e}")
+        return poe
 
     def _fallback_ports(self):
         return [{"port": str(i), "status": "unknown", "speed": "",
