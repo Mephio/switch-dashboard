@@ -58,6 +58,26 @@ mac_table:
   url: "/mac.cgi?page=fwd_tbl"
   format: "html"
 
+# PoE total consumption from /pse_system.cgi (value "pse_con_pwr", in watts).
+poe_system:
+  url: "/pse_system.cgi"
+  field_name: "pse_con_pwr"
+  unit: "W"
+
+# PoE per-port status from /pse_port.cgi (status table after the config form).
+# Columns: 0 Port | 1 State | 2 Power On/Off | 3 Type | 4 Power(W) | 5 Voltage(V) | 6 Current(mA)
+poe_ports:
+  url: "/pse_port.cgi"
+  port_table_match: "Power On/Off"
+  columns:
+    port: 0
+    state: 1
+    power_on: 2
+    type: 3
+    power_w: 4
+    voltage_v: 5
+    current_ma: 6
+
 # Packet counters from /port.cgi?page=stats.
 # Terms are deliberately specific: a bare "tx"/"rx" term would also match
 # TxBadPkt/RxBadPkt and overwrite the good-packet column index.
