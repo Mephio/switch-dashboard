@@ -1,5 +1,5 @@
 model: "POE-2G08110GSM"
-manufacturer: "Unknown"   # TODO: confirm brand from the device label/box
+manufacturer: "Mokerlink"
 
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats
