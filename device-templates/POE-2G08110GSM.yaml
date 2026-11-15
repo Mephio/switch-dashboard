@@ -3,16 +3,7 @@ manufacturer: "Unknown"   # TODO: confirm brand from the device label/box
 
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats
-# DHCP snooping: not present on this firmware (not in the menu).
-#
-# Endpoints listed in the switch menu (menu.cgi), not yet configured here
-# because their page content has not been captured:
-#   IGMP groups:   /igmp.cgi?page=dump
-#   Jumbo frame:   /fwd.cgi?page=jumboframe
-#   Config backup: /config_back.cgi            (command parameter unknown)
-#   Reboot:        /reboot.cgi                 (POST parameters unknown)
-# Their sections are omitted until the real page HTML (not the frameset shell)
-# is available, so field names and form parameters can be verified.
+# DHCP snooping: not present on this firmware (not in the menu), so no section.
 
 # Global device information from /info.cgi (single key/value table)
 device_info:
@@ -61,3 +52,32 @@ statistics:
     rx_packets: ["rxgoodpkt"]
     tx_bytes: []
     rx_bytes: []
+
+# IGMP snooping: enable checkbox "enable_igmp" on /igmp.cgi?page=enable_igmp
+# and the multicast group dump on /igmp.cgi?page=dump (headers IP Address,
+# Port, VLAN ID).
+igmp:
+  url: "/igmp.cgi?page=dump"
+  enable_input_name: "enable_igmp"
+  table_header_keywords: ["IP Address", "Port", "VLAN ID"]
+
+# Jumbo frame: size select "jumboframe" on /fwd.cgi?page=jumboframe.
+# No enable checkbox on this firmware (the scraper treats it as always enabled).
+jumbo_frame:
+  url: "/fwd.cgi?page=jumboframe"
+  select_name: "jumboframe"
+
+# Configuration backup: /config_back.cgi?cmd=conf_backup (same as the
+# "Backup" button in the switch's Backup page).
+backup:
+  url: "/config_back.cgi?cmd=conf_backup"
+  referer_path: "/config_back.cgi"
+  method: "GET"
+
+# Reboot: POST cmd=reboot to /reboot.cgi (form on the switch's Reboot page).
+reboot:
+  url: "/reboot.cgi"
+  referer_path: "/reboot.cgi"
+  method: "POST"
+  post_data:
+    cmd: "reboot"
