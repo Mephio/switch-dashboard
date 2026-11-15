@@ -60,6 +60,13 @@ statistics:
     tx_bytes: []
     rx_bytes: []
 
+# VLAN configuration per port: PVID from /vlan.cgi?page=port_based, and the
+# 802.1Q table (Member / Tagged / Untagged port lists per VLAN) from
+# /vlan.cgi?page=static.
+vlan:
+  port_based_url: "/vlan.cgi?page=port_based"
+  static_url: "/vlan.cgi?page=static"
+
 # IGMP snooping: enable checkbox "enable_igmp" and the group dump on /igmp.cgi?page=dump
 igmp:
   url: "/igmp.cgi?page=dump"
