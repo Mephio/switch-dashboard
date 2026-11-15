@@ -34,6 +34,8 @@ ports:
 
 # MAC forwarding table from /mac.cgi?page=fwd_tbl (single HTML page; the
 # "Next Page" button is disabled in the sample, so no pagination is configured).
+# TODO: if "Next Page" is enabled on a switch with many MAC entries, pagination
+# must be added here (page_parameter / perpage_parameter / cmd_parameter).
 # Columns are resolved by header name (No., MAC Address, VLAN ID, Type, Port).
 mac_table:
   url: "/mac.cgi?page=fwd_tbl"
