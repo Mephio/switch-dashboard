@@ -1,6 +1,21 @@
 model: "POE-2G08110GSM"
 manufacturer: "Mokerlink"
 
+# Login from login.html: the browser computes MD5(username + password) and
+# sends it as the hidden "Response" field, and also sets cookie admin=<md5>.
+# The scraper fills {{md5hash}} with the same value. The cookie is not set by
+# the template, so if the switch requires it, the login will fail; verify.
+login:
+  required: true
+  url: "/login.cgi"
+  method: "POST"
+  referer_path: "/login.html"
+  post_data:
+    username: "{{username}}"
+    password: "{{password}}"
+    Response: "{{md5hash}}"
+    language: "EN"
+
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats
 # DHCP snooping: not present on this firmware (not in the menu), so no section.
