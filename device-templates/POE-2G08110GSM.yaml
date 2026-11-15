@@ -3,8 +3,8 @@ manufacturer: "Unknown"   # TODO: confirm brand from the device label/box
 
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats
-# Sections not yet provided (dhcp_snooping, igmp, jumbo_frame, mac_table,
-# backup, reboot) are intentionally omitted until their pages are available.
+# Sections not yet provided (dhcp_snooping, igmp, jumbo_frame, backup, reboot)
+# are intentionally omitted until their pages are available.
 
 # Global device information from /info.cgi (single key/value table)
 device_info:
@@ -31,6 +31,13 @@ ports:
     admin_state: 1
     actual_link: 3
     flow_control: 5
+
+# MAC forwarding table from /mac.cgi?page=fwd_tbl (single HTML page; the
+# "Next Page" button is disabled in the sample, so no pagination is configured).
+# Columns are resolved by header name (No., MAC Address, VLAN ID, Type, Port).
+mac_table:
+  url: "/mac.cgi?page=fwd_tbl"
+  format: "html"
 
 # Packet counters from /port.cgi?page=stats.
 # Terms are deliberately specific: a bare "tx"/"rx" term would also match
