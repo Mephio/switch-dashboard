@@ -15,6 +15,9 @@ login:
     password: "{{password}}"
     Response: "{{md5hash}}"
     language: "EN"
+  # login.html sets this cookie with JS; the switch needs it on later requests.
+  cookies:
+    admin: "{{md5hash}}"
 
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats

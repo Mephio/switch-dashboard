@@ -283,6 +283,17 @@ class HCSwitchScraper:
             try:
                 r = self._open_request_with_retry(req, timeout=45, max_retries=5)
                 r.read()
+                # Some firmwares keep the session in a cookie set by the login page's JS
+                # (e.g. POE-2G08110GSM: admin=<md5>). Set those cookies on the jar.
+                for c_name, c_val in login_cfg.get("cookies", {}).items():
+                    c_val = str(c_val).replace("{{md5hash}}", md5hash)\
+                                      .replace("{{username}}", self.username)\
+                                      .replace("{{password}}", self.password)
+                    self._cj.set_cookie(Cookie(
+                        version=0, name=c_name, value=c_val, port=None, port_specified=False,
+                        domain=self.ip.split(":")[0], domain_specified=False, domain_initial_dot=False,
+                        path="/", path_specified=True, secure=False, expires=None, discard=True,
+                        comment=None, comment_url=None, rest={}, rfc2109=False))
                 if "login.html" in r.geturl():
                     logger.warning(f"[_login] Custom login redirect returned login.html on {self.ip}. Login failed!")
                     raise Exception("Login redirected to login.html")
