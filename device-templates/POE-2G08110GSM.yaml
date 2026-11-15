@@ -1,0 +1,46 @@
+model: "POE-2G08110GSM"
+manufacturer: "Unknown"   # TODO: confirm brand from the device label/box
+
+# Source pages used to build this template:
+#   /info.cgi, /port.cgi, /port.cgi?page=stats
+# Sections not yet provided (dhcp_snooping, igmp, jumbo_frame, mac_table,
+# backup, reboot) are intentionally omitted until their pages are available.
+
+# Global device information from /info.cgi (single key/value table)
+device_info:
+  url: "/info.cgi"
+  method: "key_value_grid"
+  mappings:
+    mac: "MAC Address"
+    ip: "IP Address"
+    firmware: "Firmware Version"
+    model: "Device Model"
+  # No uptime row on this firmware; uptime will be empty.
+
+# Port state from /port.cgi.
+# The page has two forms (config) and a status table. The status table is the
+# one containing "Actual", so it is selected via port_table_match.
+# Column indexes in the status table:
+#   0 Port | 1 State | 2 Speed Config | 3 Speed Actual | 4 Flow Config | 5 Flow Actual
+ports:
+  url: "/port.cgi"
+  source: "port_table"
+  port_table_match: "Actual"
+  columns:
+    port: 0
+    admin_state: 1
+    actual_link: 3
+    flow_control: 5
+
+# Packet counters from /port.cgi?page=stats.
+# Terms are deliberately specific: a bare "tx"/"rx" term would also match
+# TxBadPkt/RxBadPkt and overwrite the good-packet column index.
+# This page has no byte counters; the scraper estimates bytes as packets * 800.
+statistics:
+  url: "/port.cgi?page=stats"
+  method: "header_aware"
+  terms:
+    tx_packets: ["txgoodpkt"]
+    rx_packets: ["rxgoodpkt"]
+    tx_bytes: []
+    rx_bytes: []
