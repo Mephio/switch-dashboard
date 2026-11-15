@@ -58,6 +58,13 @@ mac_table:
   url: "/mac.cgi?page=fwd_tbl"
   format: "html"
 
+# VLAN configuration per port: PVID from /vlan.cgi?page=port_based, and the
+# 802.1Q table (Member / Tagged / Untagged port lists per VLAN) from
+# /vlan.cgi?page=static.
+vlan:
+  port_based_url: "/vlan.cgi?page=port_based"
+  static_url: "/vlan.cgi?page=static"
+
 # PoE total consumption from /pse_system.cgi (value "pse_con_pwr", in watts).
 poe_system:
   url: "/pse_system.cgi"

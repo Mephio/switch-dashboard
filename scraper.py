@@ -1803,6 +1803,8 @@ class HCSwitchScraper:
                                 size_val = text_node.strip() if text_node else options[0].get_text(strip=True)
                     jumbo_frame = {"enabled": enabled, "size": size_val}
 
+        self._merge_vlan(ports, template)
+
         return {
             "name": self.name,
             "ip": self.ip,
@@ -1870,6 +1872,77 @@ class HCSwitchScraper:
         except Exception as e:
             logger.error(f"Failed to scrape PoE for {self.ip}: {e}")
         return poe
+
+    def _scrape_vlan(self, template):
+        """VLAN info from the template's vlan section: PVIDs and 802.1Q membership, or None."""
+        cfg = template.get("vlan")
+        if not cfg:
+            return None
+
+        def parse_ports(text):
+            result = set()
+            for part in (text or "").split(","):
+                part = part.strip()
+                if re.fullmatch(r"\d+", part):
+                    result.add(int(part))
+                else:
+                    m = re.fullmatch(r"(\d+)\s*-\s*(\d+)", part)
+                    if m:
+                        result.update(range(int(m.group(1)), int(m.group(2)) + 1))
+            return result
+
+        info = {"pvid": {}, "vlans": []}
+        try:
+            html = self._fetch(cfg.get("port_based_url", "/vlan.cgi?page=port_based"))
+            if html:
+                for table in BeautifulSoup(html, "html.parser").find_all("table"):
+                    headers = [th.get_text(strip=True) for th in table.find_all("th")]
+                    if "PVID" not in headers:
+                        continue
+                    for row in table.find_all("tr"):
+                        cells = [td.get_text(strip=True) for td in row.find_all("td")]
+                        match = re.match(r"Port\s*(\d+)", cells[0]) if cells else None
+                        if match and len(cells) > 1 and cells[1].isdigit():
+                            info["pvid"][match.group(1)] = int(cells[1])
+                    if info["pvid"]:
+                        break
+
+            html = self._fetch(cfg.get("static_url", "/vlan.cgi?page=static"))
+            if html:
+                for table in BeautifulSoup(html, "html.parser").find_all("table"):
+                    headers = [th.get_text(strip=True) for th in table.find_all("th")]
+                    if "Tagged Ports" not in headers or "Untagged Ports" not in headers:
+                        continue
+                    for row in table.find_all("tr"):
+                        cells = [td.get_text(strip=True) for td in row.find_all("td")]
+                        if len(cells) < 5 or not cells[0].isdigit():
+                            continue
+                        info["vlans"].append({
+                            "vid": int(cells[0]),
+                            "name": cells[1],
+                            "tagged": parse_ports(cells[3]),
+                            "untagged": parse_ports(cells[4]),
+                        })
+                    break
+        except Exception as e:
+            logger.error(f"Failed to scrape VLAN for {self.ip}: {e}")
+        return info
+
+    def _merge_vlan(self, ports, template):
+        """Attach a 'vlan' summary (PVID, untagged and tagged VIDs) to each port."""
+        info = self._scrape_vlan(template)
+        if not info:
+            return
+        for p in ports:
+            port_str = str(p.get("port", ""))
+            if not port_str.isdigit():
+                continue
+            num = int(port_str)
+            p["vlan"] = {
+                "pvid": info["pvid"].get(port_str),
+                "untagged": [v["vid"] for v in info["vlans"] if num in v["untagged"]],
+                "tagged": [v["vid"] for v in info["vlans"] if num in v["tagged"]],
+            }
 
     def _fallback_ports(self):
         return [{"port": str(i), "status": "unknown", "speed": "",

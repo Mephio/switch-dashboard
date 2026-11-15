@@ -941,6 +941,23 @@ const COLUMN_DEFS = {
       return `TX ${formatBps(tx, speedUnit)}<br>RX ${formatBps(rx, speedUnit)}`;
     }
   },
+  vlan: {
+    label: 'VLAN',
+    thStyle: 'width:90px',
+    render: (p, sw) => {
+      if (!p.vlan) return '-';
+      const lines = [];
+      if (p.vlan.untagged && p.vlan.untagged.length) {
+        lines.push(`<span style="color:#8b949e">U</span> ${p.vlan.untagged.join(',')}`);
+      }
+      if (p.vlan.tagged && p.vlan.tagged.length) {
+        lines.push(`<span style="color:#8b949e">T</span> ${p.vlan.tagged.join(',')}`);
+      }
+      const pvidText = (p.vlan.pvid !== null && p.vlan.pvid !== undefined) ? `PVID ${p.vlan.pvid}` : '';
+      if (pvidText) lines.push(`<span style="color:#8b949e;font-size:10px">${pvidText}</span>`);
+      return lines.length ? lines.join('<br>') : '-';
+    }
+  },
   notes: {
     label: 'Notes',
     tdClass: 'col-note',
