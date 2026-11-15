@@ -3,8 +3,16 @@ manufacturer: "Unknown"   # TODO: confirm brand from the device label/box
 
 # Source pages used to build this template:
 #   /info.cgi, /port.cgi, /port.cgi?page=stats
-# Sections not yet provided (dhcp_snooping, igmp, jumbo_frame, backup, reboot)
-# are intentionally omitted until their pages are available.
+# DHCP snooping: not present on this firmware (not in the menu).
+#
+# Endpoints listed in the switch menu (menu.cgi), not yet configured here
+# because their page content has not been captured:
+#   IGMP groups:   /igmp.cgi?page=dump
+#   Jumbo frame:   /fwd.cgi?page=jumboframe
+#   Config backup: /config_back.cgi            (command parameter unknown)
+#   Reboot:        /reboot.cgi                 (POST parameters unknown)
+# Their sections are omitted until the real page HTML (not the frameset shell)
+# is available, so field names and form parameters can be verified.
 
 # Global device information from /info.cgi (single key/value table)
 device_info:
